@@ -1,12 +1,15 @@
 class TimersManager {
     #getTimer;
     #log;
+    #globalTimer;
 
     constructor() {
         this.timers = [];
         this.timersCallbackLogs = [];
         this.activeTimers = {};
         this.delayLimit = 5000;
+        this.globalTimeout = 10000;
+        this.maxTimeJobOut = 0;
 
         this.#getTimer = (timerName) => this.timers.find(({name}) => name === timerName);
         this.#log = (timer) => {
@@ -31,6 +34,13 @@ class TimersManager {
                 created: new Date()
             })
         };
+        this.#globalTimer = () => {
+            setTimeout(() => {
+                this.timers.forEach((timer)=>{
+                    this.remove(timer.name);
+                });
+            }, this.maxTimeJobOut + this.globalTimeout)
+        }
     }
     add(timer, ...args) {
         this.validate(timer);
@@ -42,6 +52,10 @@ class TimersManager {
 
         this.timers.push(validTimer);
 
+        if(timer.delay > this.maxTimeJobOut){
+            this.maxTimeJobOut = timer.delay;
+        }
+
         return this;
     }
     remove(timerName) {
@@ -51,11 +65,13 @@ class TimersManager {
     start() {
         this.timers.forEach((timer)=>{
             this.resume(timer.name)
-        })
+        });
+
+        this.#globalTimer();
     }
     stop() {
         this.timers.forEach((timer)=>{
-            this.pause(timer.name)
+            this.pause(timer.name);
         })
     }
     pause(timerName) {
@@ -72,9 +88,9 @@ class TimersManager {
         const callBack = this.#log.bind(null,timer);
 
         if(timer.interval){
-            this.activeTimers[timerName] = setInterval(callBack,timer.delay)
+            this.activeTimers[timerName] = setInterval(callBack,timer.delay);
         } else {
-            this.activeTimers[timerName] = setTimeout(callBack,timer.delay)
+            this.activeTimers[timerName] = setTimeout(callBack,timer.delay);
         }
     }
 
@@ -126,7 +142,7 @@ class TimersManager {
     print() {
         const timOut = setInterval(() => {
             if(this.timersCallbackLogs.length === this.timers.length){
-                console.log(this.timersCallbackLogs)
+                console.log(this.timersCallbackLogs);
                 clearInterval(timOut);
             }
         })
@@ -149,7 +165,7 @@ const t2 = {
 };
 const t3 = {
     name: 't3',
-    delay: 3000,
+    delay: 5000,
     interval: false,
     job: (a, b, d) => (a + b + d)
 };
