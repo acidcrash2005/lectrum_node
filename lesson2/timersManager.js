@@ -18,7 +18,7 @@ class TimersManager {
             let out = '';
 
             try {
-                out = job(...args;
+                out = job(...args);
             } catch ({name, message, stack}) {
                 out = {
                     name,
@@ -85,12 +85,11 @@ class TimersManager {
     }
     resume(timerName) {
         const timer = this.#getTimer(timerName);
-        const callBack = this.#log.bind(null,timer);
 
         if(timer.interval){
-            this.activeTimers[timerName] = setInterval(callBack,timer.delay);
+            this.activeTimers[timerName] = setInterval(this.#log,timer.delay,timer);
         } else {
-            this.activeTimers[timerName] = setTimeout(callBack,timer.delay);
+            this.activeTimers[timerName] = setTimeout(this.#log,timer.delay,timer);
         }
     }
 
