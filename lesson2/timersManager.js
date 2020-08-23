@@ -18,7 +18,7 @@ class TimersManager {
             let out = '';
 
             try {
-                out = job(...args)
+                out = job(...args;
             } catch ({name, message, stack}) {
                 out = {
                     name,
@@ -32,14 +32,14 @@ class TimersManager {
                 in: [...args],
                 out,
                 created: new Date()
-            })
+            });
         };
         this.#globalTimer = () => {
             setTimeout(() => {
                 this.timers.forEach((timer)=>{
                     this.remove(timer.name);
                 });
-            }, this.maxTimeJobOut + this.globalTimeout)
+            }, this.maxTimeJobOut + this.globalTimeout);
         }
     }
     add(timer, ...args) {
