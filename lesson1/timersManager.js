@@ -1,12 +1,36 @@
 class TimersManager {
     #getTimer;
+    #log;
 
     constructor() {
         this.timers = [];
+        this.timersCallbackLogs = [];
         this.activeTimers = {};
         this.delayLimit = 5000;
 
         this.#getTimer = (timerName) => this.timers.find(({name}) => name === timerName);
+        this.#log = (timer) => {
+            const {name, job, args} = timer;
+
+            let out = '';
+
+            try {
+                out = job(...args)
+            } catch ({name, message, stack}) {
+                out = {
+                    name,
+                    message,
+                    stack
+                };
+            }
+
+            this.timersCallbackLogs.push({
+                name,
+                in: [...args],
+                out,
+                created: new Date()
+            })
+        };
     }
     add(timer, ...args) {
         this.validate(timer);
@@ -45,11 +69,12 @@ class TimersManager {
     }
     resume(timerName) {
         const timer = this.#getTimer(timerName);
+        const callBack = this.#log.bind(null,timer);
 
         if(timer.interval){
-            this.activeTimers[timerName] = setInterval(timer.job,timer.delay,...timer.args)
+            this.activeTimers[timerName] = setInterval(callBack,timer.delay)
         } else {
-            this.activeTimers[timerName] = setTimeout(timer.job,timer.delay,...timer.args)
+            this.activeTimers[timerName] = setTimeout(callBack,timer.delay)
         }
     }
 
@@ -98,35 +123,42 @@ class TimersManager {
             throw new Error('You can`t add timer when time manager started!')
         }
     }
+    print() {
+        const timOut = setInterval(() => {
+            if(this.timersCallbackLogs.length === this.timers.length){
+                console.log(this.timersCallbackLogs)
+                clearInterval(timOut);
+            }
+        })
+    }
 }
 const manager = new TimersManager();
 const t1 = {
     name: 't1',
     delay: 1000,
     interval: false,
-    job: () => { console.log('t1') }
+    job: () => {
+        throw new Error('We have a problem!')
+    }
 };
 const t2 = {
     name: 't2',
     delay: 1000,
     interval: false,
-    job: (a, b) => {
-        console.log(a + b)
-    }
+    job: (a, b) => (a + b)
 };
 const t3 = {
     name: 't3',
     delay: 3000,
     interval: false,
-    job: (a, b, d) => {
-        console.log(a + b + d)
-    }
+    job: (a, b, d) => (a + b + d)
 };
 manager.add(t1);
 manager.add(t2, 1, 2).add(t3, 'Hello ', 'world ','!')
 manager.start();
+manager.print();
 console.log(1);
 // manager.remove('t3');
 // manager.stop();
-manager.pause('t3');
+// manager.pause('t3');
 // manager.resume('t3');
