@@ -1,8 +1,7 @@
 const EventEmitter = require('events');
 
-class Bank {
+class Bank extends EventEmitter{
     #users;
-    #events;
 
     #validateExistUser;
     #validateLessBalance;
@@ -12,12 +11,12 @@ class Bank {
     #dropError;
 
     constructor() {
+        super();
         this.#users = new Map;
-        this.#events = new EventEmitter();
 
         // Errors
         this.#dropError = (text)=> {
-            this.#events.emit('error',new Error(text));
+            this.emit('error',new Error(text));
         };
 
         // Validators
@@ -58,7 +57,7 @@ class Bank {
         };
 
         // Events
-        this.#events.on('add', (userId, balance) => {
+        this.on('add', (userId, balance) => {
             this.#validateExistUser({userIds:[userId]});
             this.#validateLessBalance(balance);
             this.#validateIsNumber(balance, 'Add value');
@@ -70,13 +69,13 @@ class Bank {
                 balance: user.balance + balance
             });
         })
-        this.#events.on('get', (userId, callback) => {
+        this.on('get', (userId, callback) => {
             this.#validateExistUser({userIds:[userId]});
             const user = this.#users.get(userId);
 
             callback(user.balance);
         })
-        this.#events.on('withdraw', (userId, withdraw) => {
+        this.on('withdraw', (userId, withdraw) => {
             this.#validateExistUser({userIds:[userId]});
             this.#validateIsNumber(withdraw, 'Withdraw');
             this.#validateLessBalance(withdraw, 'Withdraw сan not be less than or equal to zero!');
@@ -96,7 +95,7 @@ class Bank {
                 balance: newBalance
             })
         })
-        this.#events.on('send',(sendUserId,receiveUserId, amount) => {
+        this.on('send',(sendUserId,receiveUserId, amount) => {
             this.#validateExistUser({userIds:[sendUserId, receiveUserId]});
             this.#validateLessBalance(amount, 'Amount сan not be less than or equal to zero!');
             this.#validateIsNumber(amount, 'Amount');
@@ -123,7 +122,7 @@ class Bank {
                 balance: newReceiverBalance
             })
         })
-        this.#events.on('changeLimit',(userId, limit) => {
+        this.on('changeLimit',(userId, limit) => {
             this.#validateExistUser({userIds:[userId]});
 
             if(typeof limit !== 'function'){
@@ -150,11 +149,6 @@ class Bank {
 
         return userId
     }
-
-    emit(eventName, ...data){
-        this.#events.emit(eventName,...data);
-    }
-
 }
 
 module.exports = {
