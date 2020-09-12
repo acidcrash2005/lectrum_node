@@ -57,6 +57,26 @@ class Bank extends EventEmitter{
         };
 
         // Events
+        this.onAdd();
+        this.onGet();
+        this.onSend();
+        this.onWithdraw();
+        this.onChangeLimit();
+    }
+
+    register(user) {
+        const {name, balance} = user;
+        this.#validateExistUser({userId:name, isUniqName: true});
+        this.#validateLessBalance(balance);
+
+        const userId = Math.random().toString(36).substr(2,9) + Date.now();
+
+        this.#users.set(userId, user);
+
+        return userId
+    }
+
+    onAdd(){
         this.on('add', (userId, balance) => {
             this.#validateExistUser({userIds:[userId]});
             this.#validateLessBalance(balance);
@@ -69,12 +89,18 @@ class Bank extends EventEmitter{
                 balance: user.balance + balance
             });
         })
+    }
+
+    onGet(){
         this.on('get', (userId, callback) => {
             this.#validateExistUser({userIds:[userId]});
             const user = this.#users.get(userId);
 
             callback(user.balance);
         })
+    }
+
+    onWithdraw(){
         this.on('withdraw', (userId, withdraw) => {
             this.#validateExistUser({userIds:[userId]});
             this.#validateIsNumber(withdraw, 'Withdraw');
@@ -95,6 +121,9 @@ class Bank extends EventEmitter{
                 balance: newBalance
             })
         })
+    }
+
+    onSend(){
         this.on('send',(sendUserId,receiveUserId, amount) => {
             this.#validateExistUser({userIds:[sendUserId, receiveUserId]});
             this.#validateLessBalance(amount, 'Amount сan not be less than or equal to zero!');
@@ -122,6 +151,9 @@ class Bank extends EventEmitter{
                 balance: newReceiverBalance
             })
         })
+    }
+
+    onChangeLimit(){
         this.on('changeLimit',(userId, limit) => {
             this.#validateExistUser({userIds:[userId]});
 
@@ -135,19 +167,6 @@ class Bank extends EventEmitter{
                 limit
             })
         });
-
-    }
-
-    register(user) {
-        const {name, balance} = user;
-        this.#validateExistUser({userId:name, isUniqName: true});
-        this.#validateLessBalance(balance);
-
-        const userId = Math.random().toString(36).substr(2,9) + Date.now();
-
-        this.#users.set(userId, user);
-
-        return userId
     }
 }
 
