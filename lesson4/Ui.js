@@ -1,36 +1,108 @@
 const { Readable } = require('stream');
 
-class Ui extends Readable{
-    constructor(data, options = {
-        encoding: 'utf8'
-    }) {
+class UiEncode extends Readable{
+    constructor(data, options = { objectMode:true }) {
         super(options);
 
-        this.init();
+        this.#validate(data);
         this.data = data;
     }
 
-    init(){
-        this.on('data', chunk => {
-            console.log(chunk);
-        })
+    #validate = (data) => {
+        const requireFields = ['name', 'email','password'];
 
+        data.forEach(user => {
+            if(Object.keys(user).length > requireFields.length){
+                throw new Error('Data should contain just "name", "email","password" fields!');
+            }
+
+            requireFields.forEach(field => {
+                if(!user.hasOwnProperty(field)){
+                    throw new Error(`${field} is required field of user data!`);
+                }
+
+                if(typeof user[field] !== 'string'){
+                    throw new Error(`${field} is not type of string!`);
+                }
+            })
+        })
     }
 
+
     _read() {
-        const data = this.data.shift();
+        const [chunk, ...data] = this.data;
 
         if(!data){
             this.pause();
             return
         }
 
-        this.push(data);
+        this.push(chunk);
+        this.data = data;
     }
 }
 
-const array = ['1', '2', '3'];
+class UiDecode extends Readable {
+    constructor(data, options = { objectMode:true }) {
+        super(options);
 
-const rs = new Ui(array);
+        this.#validate(data);
+        this.data = data;
+    }
 
-exports.default = Ui;
+    #validate = (data) => {
+        const requireFields = ['payload', 'meta'];
+        const payloadFields = ['name', 'email','password'];
+
+        data.forEach(user => {
+            if(Object.keys(user).length > requireFields.length){
+                throw new Error('Data should contain just "payload" and "meta" fields!');
+            }
+
+            if(typeof user.payload !== 'object'){
+                throw new Error('User "payload" should be an object!');
+            }
+
+            if(typeof user.meta !== 'object'){
+                throw new Error('User "meta" should be an object!');
+            }
+
+            payloadFields.forEach(field => {
+                if(!user.payload.hasOwnProperty(field)){
+                    throw new Error(`${field} is required field of user data!`);
+                }
+
+                if(typeof user.payload[field] !== 'string' && typeof user.payload[field] !== ''){
+                    throw new Error(`${field} is required required and should be a string!`);
+                }
+            })
+
+            if(!user.meta.hasOwnProperty('algorithm') ){
+                throw new Error('User "meta" should have "algorithm" key!');
+            }
+
+            if(typeof user.meta.algorithm !== 'string' && user.meta.algorithm === ''){
+                throw new Error('User "meta.algorithm" required and should be a string!');
+            }
+
+            if(user.meta.algorithm !== 'hex' && user.meta.algorithm !== 'base64'){
+                throw new Error('User "meta.algorithm" should be a "hex" or "base64"!');
+            }
+        })
+    }
+
+
+    _read() {
+        const [chunk, ...data] = this.data;
+
+        if(!data){
+            this.pause();
+            return
+        }
+
+        this.push(chunk);
+        this.data = data;
+    }
+}
+
+module.exports = { UiEncode, UiDecode };
