@@ -1,5 +1,5 @@
 const { pipeline } = require('stream');
-const { UiDecode, UiEncode } = require('./Ui');
+const { UiEncode } = require('./Ui');
 const { AccountManager } = require('./AccountManager');
 const { Guardian } = require('./Guardian');
 const { Logger } = require('./Logger');
@@ -21,11 +21,17 @@ const guardian = new Guardian();
 const manager = new AccountManager();
 const logger = new Logger();
 
-// pipeline(
-//     ui,
-//     // guardian,
-//     // manager
-// )
+pipeline(
+    uiEncode,
+    guardian,
+    logger,
+    manager,
+    (error) => {
+        if(error){
+            console.log(error);
+        }
+    }
+)
 
-uiEncode.pipe(guardian).pipe(logger).pipe(manager);
+// uiEncode.pipe(guardian).pipe(logger).pipe(manager);
 

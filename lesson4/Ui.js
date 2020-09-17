@@ -1,6 +1,6 @@
 const { Readable } = require('stream');
 
-class UiEncode extends Readable{
+class UiEncode extends Readable {
     constructor(data, options = { objectMode:true }) {
         super(options);
 
@@ -8,10 +8,10 @@ class UiEncode extends Readable{
         this.data = data;
     }
 
-    #validate = (data) => {
+    #validate = (users) => {
         const requireFields = ['name', 'email','password'];
 
-        data.forEach(user => {
+        users.forEach(user => {
             if(Object.keys(user).length > requireFields.length){
                 throw new Error('Data should contain just "name", "email","password" fields!');
             }
@@ -28,13 +28,12 @@ class UiEncode extends Readable{
         })
     }
 
-
     _read() {
         const [chunk, ...data] = this.data;
 
-        if(!data){
-            this.pause();
-            return
+        if(!chunk){
+            this.push(null);
+            return;
         }
 
         this.push(chunk);
@@ -50,11 +49,11 @@ class UiDecode extends Readable {
         this.data = data;
     }
 
-    #validate = (data) => {
+    #validate = (users) => {
         const requireFields = ['payload', 'meta'];
         const payloadFields = ['name', 'email','password'];
 
-        data.forEach(user => {
+        users.forEach(user => {
             if(Object.keys(user).length > requireFields.length){
                 throw new Error('Data should contain just "payload" and "meta" fields!');
             }
@@ -95,9 +94,9 @@ class UiDecode extends Readable {
     _read() {
         const [chunk, ...data] = this.data;
 
-        if(!data){
-            this.pause();
-            return
+        if(!chunk){
+            this.push(null);
+            return;
         }
 
         this.push(chunk);

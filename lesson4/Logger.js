@@ -11,11 +11,10 @@ class Logger extends Transform {
         super(options);
     }
 
-    _transform(chunk, encoding, callback) {
-
+    _transform(chunk, encoding, next) {
         this.push(chunk);
         db.emit('data', chunk);
-        callback();
+        next();
     }
 }
 

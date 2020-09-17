@@ -10,11 +10,7 @@ class Guardian extends Transform {
 
     #hexEncode = (data) => Buffer.from(data, 'utf8').toString('hex');
 
-    _transform(chunk, encoding, callback) {
-        if(!chunk){
-            this.pause();
-            return
-        }
+    _transform(chunk, _, next) {
 
         const { name, email, password } = chunk;
         const newData = {
@@ -27,7 +23,7 @@ class Guardian extends Transform {
         };
 
         this.push(newData);
-        callback();
+        next();
     }
 }
 
