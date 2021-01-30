@@ -1,0 +1,7 @@
+gql.ts
+api.ts
+augmentation.d.ts
+eventLog.scss
+*.scss.d.ts
+*.css.d.ts
+*.json
